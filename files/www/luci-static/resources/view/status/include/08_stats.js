@@ -11,13 +11,18 @@ let last_time = Date.now();
 	function isDarkMode() {
 		try {
 			const bgColor = getComputedStyle(document.body).backgroundColor;
+			console.log('[NetStat] Body bg color:', bgColor);
+			
 			if (!bgColor || bgColor === 'transparent') return false;
 			const rgb = bgColor.match(/\d+/g);
 			if (!rgb || rgb.length < 3) return false;
 			const [r, g, b] = rgb.map(Number);
 			const luminance = (r * 299 + g * 587 + b * 114) / 1000;
-			return luminance < 100;
+			const isDark = luminance < 100;
+			console.log('[NetStat] RGB:', r, g, b, 'Luminance:', luminance, 'isDark:', isDark);
+			return isDark;
 		} catch (e) {
+			console.error('[NetStat] Error detecting dark mode:', e);
 			return false;
 		}
 	}
@@ -26,41 +31,75 @@ let last_time = Date.now();
 		const dark = isDarkMode();
 		const cssFile = dark ? 'netstat_dark.css' : 'netstat.css';
 		
-		if (lastLoadedCss === cssFile) return;
+		console.log('[NetStat] loadCSS - current dark:', dark, 'last loaded:', lastLoadedCss);
+		
+		// Skip only if we just loaded this exact CSS
+		if (lastLoadedCss === cssFile) {
+			console.log('[NetStat] CSS already loaded, skipping');
+			return;
+		}
+		
+		console.log('[NetStat] Loading CSS:', cssFile);
 		lastLoadedCss = cssFile;
 
+		// Remove old CSS
 		document.querySelectorAll('link[href*="netstat.css"]').forEach(link => {
+			console.log('[NetStat] Removing old CSS:', link.href);
 			if (link.parentNode) link.parentNode.removeChild(link);
 		});
 
+		// Load new CSS
 		const link = document.createElement('link');
 		link.rel = 'stylesheet';
 		link.href = '/luci-static/resources/netstat/' + cssFile + '?t=' + Date.now();
+		
+		link.onload = function() {
+			console.log('[NetStat] ✓ CSS loaded:', link.href);
+		};
+		link.onerror = function() {
+			console.error('[NetStat] ✗ CSS failed to load:', link.href);
+		};
+		
+		console.log('[NetStat] Adding link to head:', link.href);
 		document.head.appendChild(link);
 	}
 
-	setTimeout(loadCSS, 100);
-	setInterval(loadCSS, 500);
+	// Initial load with short delay
+	setTimeout(() => {
+		console.log('[NetStat] Initial load');
+		loadCSS();
+	}, 100);
+
+	// Poll every 500ms
+	setInterval(() => {
+		loadCSS();
+	}, 500);
+	
+	console.log('[NetStat] CSS loader initialized');
 })();
 
 function parseNetdev(raw) {
 	const stats = {};
 	const lines = raw.split('\n');
 	
-	for (let line of lines) {
-		line = line.trim();
+	for (let i = 0; i < lines.length; i++) {
+		const line = lines[i].trim();
 		if (!line || line.startsWith('face') || line.startsWith('|')) continue;
-
+		
 		const match = line.match(/^([^:]+):\s+(.*)$/);
 		if (!match) continue;
-
+		
 		const iface = match[1].trim();
 		const values = match[2].trim().split(/\s+/).map(v => parseInt(v) || 0);
-
+		
 		if (values.length >= 9) {
-			stats[iface] = { rx: values[0], tx: values[8] };
+			stats[iface] = {
+				rx: values[0],
+				tx: values[8]
+			};
 		}
 	}
+	
 	return stats;
 }
 
@@ -110,10 +149,9 @@ function createStatBox(label, value, unit, extraClass) {
 	]);
 }
 
-function createStatusContainer(status, ip) {
+function createStatusCard(status, ip) {
 	const isConnected = status === 'Connected';
 	const statusText = isConnected ? _('Connected') : _('Disconnected');
-
 	return E('div', { class: 'netstat-box netstat-center ' + (isConnected ? 'is-up' : 'is-down') }, [
 		E('div', { class: 'netstat-center-title' }, _('INTERNET')),
 		E('div', { class: 'netstat-center-status' }, statusText),
@@ -127,17 +165,30 @@ return baseclass.extend({
 	title: _(''),
 
 	load: function () {
+		// Direct call to getNetdevStats function via HTTP
 		return L.resolveDefault(
 			fetch('/cgi-bin/luci/admin/tools/get_netdev_stats')
 				.then(res => res.json())
 				.catch(() => ({ stats: {}, ip: 'N/A', status: 'Disconnected' })),
 			{ stats: {}, ip: 'N/A', status: 'Disconnected' }
-		).then(result => ({
-			stats: result.stats || result || {},
-			ip: result.ip || 'N/A',
-			status: result.status || 'Disconnected',
-			preferred: []
-		}));
+		).then(result => {
+			const stats = (result && result.stats) || result || {};
+			const ip = (result && result.ip) || 'N/A';
+			const status = (result && result.status) || 'Disconnected';
+			return {
+				stats: stats,
+				ip: ip,
+				status: status,
+				preferred: []
+			};
+		}).catch(() => {
+			return {
+				stats: {},
+				ip: 'N/A',
+				status: 'Disconnected',
+				preferred: []
+			};
+		});
 	},
 
 	render: function (data) {
@@ -146,14 +197,21 @@ return baseclass.extend({
 		last_time = now;
 
 		const stats = data.stats;
-		if (!stats || typeof stats !== 'object') {
-			return E('div', { style: 'padding:20px;text-align:center;color:#999;' }, _('Loading network stats...'));
+		if (!stats || typeof stats !== 'object' || Array.isArray(stats)) {
+			return E('div', { style: 'padding: 20px; text-align: center; color: #999; font-size: 13px;' }, 
+				_('Loading network stats...')
+			);
 		}
 
-		const iface = getBestWAN(stats, data.preferred || []);
+		const preferred = data.preferred || [];
+		const iface = getBestWAN(stats, preferred);
 		const curr = stats[iface] || { rx: 0, tx: 0 };
-
-		const prevStat = prev[iface] || curr;
+		
+		// Ensure values are numbers
+		curr.rx = parseInt(curr.rx) || 0;
+		curr.tx = parseInt(curr.tx) || 0;
+		
+		const prevStat = prev[iface] || { rx: curr.rx, tx: curr.tx };
 
 		let rxSpeed = Math.max(0, (curr.rx - prevStat.rx) / dt);
 		let txSpeed = Math.max(0, (curr.tx - prevStat.tx) / dt);
@@ -171,27 +229,30 @@ return baseclass.extend({
 
 		row.appendChild(createStatBox(_('download'), rxRate.number, rxRate.unit, 'is-download'));
 		row.appendChild(createStatBox(_('upload'), txRate.number, txRate.unit, 'is-upload'));
-
 		const status = data.status || 'Disconnected';
 		const ip = data.ip || 'N/A';
-
-		row.appendChild(createStatusContainer(status, ip));
-
-		row.appendChild(createStatBox(_('downloads'), totalRx.split(' ')[0], totalRx.split(' ')[1], 'is-total'));
-		row.appendChild(createStatBox(_('uploaded'), totalTx.split(' ')[0], totalTx.split(' ')[1], 'is-total'));
+		row.appendChild(createStatusCard(status, ip));
+		row.appendChild(createStatBox(_('downloaded'), totalRx.split(' ')[0], totalRx.split(' ')[1] || '', 'is-total'));
+		row.appendChild(createStatBox(_('uploaded'), totalTx.split(' ')[0], totalTx.split(' ')[1] || '', 'is-total'));
 
 		container.appendChild(row);
 
+		// Set up polling for real-time updates
 		L.Poll.add(() => {
-			return fetch('/cgi-bin/luci/admin/tools/get_netdev_stats')
-				.then(res => res.json())
-				.then(result => this.render({
-					stats: result.stats || {},
-					ip: result.ip || 'N/A',
-					status: result.status || 'Disconnected',
-					preferred: []
-				}))
-				.catch(() => container);
+			return L.resolveDefault(
+				fetch('/cgi-bin/luci/admin/tools/get_netdev_stats')
+					.then(res => res.json())
+					.catch(() => ({ stats: {}, ip: 'N/A', status: 'Disconnected' })),
+				{ stats: {}, ip: 'N/A', status: 'Disconnected' }
+			).then(result => {
+				const newStats = (result && result.stats) || {};
+				const newIP = (result && result.ip) || 'N/A';
+				const newStatus = (result && result.status) || 'Disconnected';
+				return this.render({ stats: newStats, ip: newIP, status: newStatus, preferred: preferred });
+			}).catch((e) => {
+				console.error('Fetch error:', e);
+				return container;
+			});
 		}, 1000);
 
 		return container;

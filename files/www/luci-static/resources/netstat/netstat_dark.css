@@ -1,6 +1,10 @@
 .stats-grid.netstat-wrap {
   padding: 18px !important;
   border-radius: 18px !important;
+  border: 1px solid #2a2e34 !important;
+  overflow: hidden !important;
+  background-clip: padding-box !important;
+  background-color: #15181c !important;
   background: linear-gradient(135deg, #1b1d20 0%, #121417 100%) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
   font-family: "Trebuchet MS", "Lucida Sans Unicode", sans-serif !important;

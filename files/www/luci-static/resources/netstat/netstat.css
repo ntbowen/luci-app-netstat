@@ -8,17 +8,20 @@
 
 .netstat-row {
   display: flex !important;
-  gap: 16px !important;
+  gap: 12px !important;
   align-items: center !important;
-  justify-content: space-between !important;
+  justify-content: center !important;
   flex-wrap: wrap !important;
+  max-width: 1180px !important;
+  margin: 0 auto !important;
+  padding: 0 38px !important;
 }
 
 .netstat-box {
-  flex: 1 1 140px !important;
-  min-width: 120px !important;
-  max-width: 210px !important;
-  padding: 14px 12px !important;
+  flex: 0 1 180px !important;
+  min-width: 110px !important;
+  max-width: 185px !important;
+  padding: 11px 10px !important;
   background: #fff !important;
   border: 2px solid #111 !important;
   border-radius: 18px !important;
@@ -27,28 +30,28 @@
 }
 
 .netstat-center {
-  flex: 1.6 1 220px !important;
-  min-width: 200px !important;
+  flex: 0 1 205px !important;
+  min-width: 180px !important;
   border-style: dashed !important;
 }
 
 .netstat-number {
   font-weight: 800 !important;
-  font-size: 30px !important;
+  font-size: 24px !important;
   color: #111 !important;
   line-height: 1 !important;
 }
 
 .netstat-unit {
   font-weight: 700 !important;
-  font-size: 13px !important;
+  font-size: 12px !important;
   color: #2a2a2a !important;
   letter-spacing: 0.2px !important;
   margin-top: 4px !important;
 }
 
 .netstat-label {
-  margin-top: 6px !important;
+  margin-top: 5px !important;
   font-size: 12px !important;
   font-weight: 700 !important;
   color: #3a3a3a !important;
@@ -64,7 +67,7 @@
 }
 
 .netstat-center-status {
-  font-size: 16px !important;
+  font-size: 15px !important;
   font-weight: 800 !important;
   color: #1e6b2f !important;
   margin-top: 6px !important;
@@ -74,11 +77,11 @@
   height: 1px !important;
   background: #111 !important;
   opacity: 0.4 !important;
-  margin: 8px 0 !important;
+  margin: 6px 0 !important;
 }
 
 .netstat-center-ip {
-  font-size: 14px !important;
+  font-size: 13px !important;
   font-weight: 700 !important;
   color: #111 !important;
   font-family: "Lucida Console", "Courier New", monospace !important;
@@ -102,6 +105,10 @@
 }
 
 @media (max-width: 900px) {
+  .netstat-row {
+    padding: 0 12px !important;
+  }
+
   .netstat-box,
   .netstat-center {
     max-width: none !important;

@@ -232,7 +232,7 @@ return baseclass.extend({
 		const status = data.status || 'Disconnected';
 		const ip = data.ip || 'N/A';
 		row.appendChild(createStatusCard(status, ip));
-		row.appendChild(createStatBox(_('downloads'), totalRx.split(' ')[0], totalRx.split(' ')[1] || '', 'is-total'));
+		row.appendChild(createStatBox(_('downloaded'), totalRx.split(' ')[0], totalRx.split(' ')[1] || '', 'is-total'));
 		row.appendChild(createStatBox(_('uploaded'), totalTx.split(' ')[0], totalTx.split(' ')[1] || '', 'is-total'));
 
 		container.appendChild(row);

@@ -1,45 +1,117 @@
-.stats-grid {
-  background-color: #1e1e1e !important;
+.stats-grid.netstat-wrap {
+  padding: 18px !important;
+  border-radius: 18px !important;
+  background: linear-gradient(135deg, #1b1d20 0%, #121417 100%) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  font-family: "Trebuchet MS", "Lucida Sans Unicode", sans-serif !important;
 }
 
-.stats-card,
-.ip-card {
-  color: #ddd !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+.netstat-row {
+  display: flex !important;
+  gap: 16px !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
 }
 
-.stat-icon {
-  filter: brightness(0.8) invert(1) !important; 
+.netstat-box {
+  flex: 1 1 140px !important;
+  min-width: 120px !important;
+  max-width: 210px !important;
+  padding: 14px 12px !important;
+  background: #0f1113 !important;
+  border: 2px solid #e6e6e6 !important;
+  border-radius: 18px !important;
+  text-align: center !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35) !important;
 }
 
-.stat-label {
-  color: #ccc !important;
+.netstat-center {
+  flex: 1.6 1 220px !important;
+  min-width: 200px !important;
+  border-style: dashed !important;
 }
 
-.stat-value {
-  color: #eee !important;
+.netstat-number {
+  font-weight: 800 !important;
+  font-size: 30px !important;
+  color: #f4f4f4 !important;
+  line-height: 1 !important;
 }
 
-.stat-number {
-  color: #fff !important;
+.netstat-unit {
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  color: #d6d6d6 !important;
+  letter-spacing: 0.2px !important;
+  margin-top: 4px !important;
 }
 
-.stat-unit {
-  color: #aaa !important;
+.netstat-label {
+  margin-top: 6px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #c8c8c8 !important;
+  text-transform: lowercase !important;
 }
 
-.ip-value {
-  color: #fff !important;
+.netstat-center-title {
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  color: #e5e5e5 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.8px !important;
 }
 
-.eye-icon {
-  filter: brightness(0.8) invert(1) !important; 
+.netstat-center-status {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  color: #7fdc98 !important;
+  margin-top: 6px !important;
 }
 
-.ip-org {
-  color: #999 !important;
+.netstat-center-sep {
+  height: 1px !important;
+  background: #e6e6e6 !important;
+  opacity: 0.5 !important;
+  margin: 8px 0 !important;
 }
 
-.wan-text {
-  color: #bbb !important;
+.netstat-center-ip {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #f4f4f4 !important;
+  font-family: "Lucida Console", "Courier New", monospace !important;
+  word-break: break-all !important;
+}
+
+.netstat-box.is-download .netstat-number {
+  color: #7fdc98 !important;
+}
+
+.netstat-box.is-upload .netstat-number {
+  color: #7db8ff !important;
+}
+
+.netstat-box.is-total .netstat-number {
+  color: #f0f0f0 !important;
+}
+
+.netstat-box.is-down .netstat-center-status {
+  color: #ff7d7d !important;
+}
+
+@media (max-width: 900px) {
+  .netstat-box,
+  .netstat-center {
+    max-width: none !important;
+    flex: 1 1 45% !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .netstat-box,
+  .netstat-center {
+    flex: 1 1 100% !important;
+  }
 }

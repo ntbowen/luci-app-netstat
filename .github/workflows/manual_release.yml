@@ -93,7 +93,7 @@ jobs:
         run: |
           if [ "${{ steps.cache-sdk.outputs.cache-hit }}" != "true" ]; then
             download_base="https://downloads.openwrt.org/releases/${{ env.OPENWRT_VERSION }}/targets/${{ env.OPENWRT_TARGET }}/${{ env.OPENWRT_SUBTARGET }}"
-            sdk_file=$(wget -qO- "${download_base}/sha256sums" | awk '/openwrt-sdk-${{ env.OPENWRT_VERSION }}-${{ env.OPENWRT_TARGET }}-${{ env.OPENWRT_SUBTARGET }}_.*\.tar\.zst$/{print $2; exit}')
+            sdk_file=$(wget -qO- "${download_base}/sha256sums" | awk '/openwrt-sdk-${{ env.OPENWRT_VERSION }}-${{ env.OPENWRT_TARGET }}-${{ env.OPENWRT_SUBTARGET }}_.*\.tar\.zst$/{gsub(/^\*/,"",$2); print $2; exit}')
             if [ -z "${sdk_file}" ]; then
               echo "::error::Unable to find SDK tarball for OpenWrt ${{ env.OPENWRT_VERSION }}"
               exit 1
